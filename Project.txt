@@ -1,0 +1,224 @@
+import pandas as pd
+import time
+import numpy as np
+
+CITY_DATA = { 'chicago': 'chicago.csv',
+              'new york city': 'new_york_city.csv',
+              'washington': 'washington.csv' }
+
+M = ['january', 'february', 'march', 'april', 'may', 'june',]
+D = ['saturday','sunday','monday','tuesday','wednsday','thursday','friday']
+C = ["new york city", "washington","chicago"]
+
+
+def get_city():
+   
+    print('Hello! Let\'s explore some US bikeshare data!')
+    # TO DO: get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid inputs
+    city = input("Please Specify the name of the city you want from ('Chicago','Washington','New York City'):")
+    while city.lower() not in C:
+        city= input("Please choose a city from above:")
+
+    
+         
+ 
+    # TO DO: get user input for day of week (all, monday, tuesday, ... sunday)
+
+
+    
+    return city.lower()
+
+def filter_by():
+    
+     # TO DO: get user input for month (all, january, february, ... , june)
+    filter_1 = input("Would you like to filter the data by: Day, Month, Both, or Non at all?")
+ 
+    return filter_1.lower()
+
+
+def get_date2(filter_1):
+    if filter_1 == "day":
+     day=input("Please enter the day you want to filter by:")
+     month = "all"
+     while day.lower() not in D:
+         print("Please choose a day and make sure of the spelling:")
+         
+         day=input("Please enter the day you want to filter by:")        
+    elif filter_1 == "month":
+        day ="all"
+        month= input("please choose month you want to filter by ('january', 'february', 'march', 'april', 'may', 'june'):")
+        while month.lower() not in M:          
+            print("Please choose on the above mentioned months")
+                
+            month= input("please choose month you want to filter by ('january', 'february', 'march', 'april', 'may', 'june'):")
+    elif filter_1 =="both":
+        day=input("Please enter the day you want to filter by:")
+        month= input("please choose month you want to filter by ('january', 'february', 'march', 'april', 'may', 'june'):")
+        while month.lower() not in M:          
+            print("Please choose on the above mentioned months")
+                
+            month= input("Please choose a day and make sure of the spelling:")
+        while day.lower() not in D:
+            print("write coorect day:")
+         
+            day=input("Please enter your day:") 
+    else: 
+     day = "all"
+     month = "all"
+    print('-'*40)    
+    return month.lower(),day.title()
+    
+
+def load_data(city, month, day):
+    pf = pd.read_csv(CITY_DATA[city])
+    pf['Start Time'] = pd.to_datetime(pf['Start Time'])
+
+    # extract month and day of week from Start Time to create new columns
+    pf['month'] = pf['Start Time'].dt.month
+    pf['day_of_week'] = pf['Start Time'].dt.weekday_name
+    pf['hour']=pf['Start Time'].dt.hour
+    
+    if month != 'all':
+       
+        month = M.index(month) + 1
+        pf = pf[pf['month'] == month]  
+    if day != 'All':
+        # filter by day of week to create the new dataframe
+        pf = pf[pf['day_of_week'] == day]
+    
+
+    return pf
+
+def time_stats(pf,month,day):
+    
+    
+   print('\nCalculating The Most Frequent Times of Travel...\n')
+   start_time = time.time()
+   if month == "all":       
+        most_month= pf['month'].mode()[0]       
+        print(f"{M[most_month-1]} was  the most common month visited.")
+        print("Count: ",pf['month'].value_counts()[most_month],"\n")
+   
+   if day == "All":
+        most_day = pf['day_of_week'].mode()[0]
+        print(f"{most_day} was the most common day of the week that people rode on.")
+        print("Count:",pf['day_of_week'].value_counts()[most_day],"\n")
+   most_hour = pf['hour'].mode()[0] 
+   print(f"({most_hour}) was the most common hour.")
+   print("\n Count:",pf['hour'].value_counts()[most_hour])
+   print("\nThis took %s seconds." % (time.time() - start_time))
+   print('-'*40)
+    
+def station_stats(pf):
+    """Displays statistics on the most popular stations and trip."""
+
+    print('\nCalculating The Most Popular Stations and Trip...\n')
+    start_time = time.time()
+
+    # TO DO: display most commonly used start station
+    most_start_station =pf['Start Station'].mode()[0]
+    print(f"{most_start_station} was the most commonly used location to start.")
+    print("Count:",pf['Start Station'].value_counts()[most_start_station],"\n")
+    # TO DO: display most commonly used end station
+    most_end_station = pf['End Station'].mode()[0]
+    print(f"{most_end_station} was the the most commonly used end station.")
+    print("Count:",pf['End Station'].value_counts()[most_end_station],"\n")      
+
+    # TO DO: display most frequent combination of start station and end station trip
+    pf["route"] = pf["Start Station"] + "-" + pf["End Station"] 
+    comb = pf["route"].mode()[0]
+    print(f"The most common combination of start and end station is {comb.replace('-',' and ') }")
+    print("Count:",pf["route"].value_counts()[comb],"\n")
+          
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+    
+
+
+def trip_duration_stats(pf):
+    """Displays statistics on the total and average trip duration."""
+
+    print('\nCalculating Trip Duration...\n')
+    start_time = time.time()
+    
+    # TO DO: display total travel time
+    total= pf['Trip Duration'].sum()/3600
+    print( f"The total travel time was {total} hours") 
+
+    # TO DO: display mean travel time
+    mean=pf['Trip Duration'].mean()/60
+    print( f" The mean travel time was {mean} mins")
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+         
+def user_stats(pf,city):
+    """Displays statistics on bikeshare users."""
+
+    print('\nCalculating User Stats...\n')
+    start_time = time.time()
+
+    
+    user_types = pf['User Type'].value_counts()
+    print(user_types)
+    if city != 'washington':
+        gender = pf['Gender'].value_counts()
+        print(gender)
+        early = pf['Birth Year'].min()
+        print(f"The oldest user was born in :{early}")
+        late = pf['Birth Year'].max()
+        print(f"The youngest user was born in :{late}")
+        common = pf['Birth Year'].mode()[0]       
+        print(f" The year was the most births was {flt(common)} with:",pf['Birth Year'].value_counts()[common]," births")
+        
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40) 
+  
+    
+def raw_input(pf):
+   
+     start_loc = 0
+     while True:
+        
+        display_opt = input("Would you like to view 5 rows of raw data from the file?\n Type: Yes or No ").lower()
+        if display_opt not in ['yes', 'no']
+            print('That\'s invalid choice, pleas type (yes) or (no) to stop the program')
+
+        elif display_opt == 'yes':
+            print("Here are the 5 rows you ordered:"
+            print(pf.iloc[start_loc:start_loc+5])
+            start_loc+=5
+
+        elif display_opt == 'no':
+            print('\nExiting...')
+            break
+                
+        
+def main():
+    while True:
+        city= get_city()
+        filter_1 = filter_by()
+        month,day=get_date2(filter_1)               
+        pf = load_data(city, month, day)
+        time_stats(pf,month,day)        
+        station_stats(pf)
+        trip_duration_stats(pf)
+        user_stats(pf,city)
+        raw_input(pf)
+              
+
+        restart = input('\nWould you like to restart? Enter yes or no.\n')
+        if restart.lower() != 'yes':
+            break
+
+
+if __name__ == "__main__":
+	main()
+                  
+                   """
+    Had help in the raw_input function  from our mentors on the (https://nfpdiscussions.udacity.com/t/displaying-rows/88228/13) disscussion
+  
+    also the combined start and end had help from the (https://nfpdiscussions.udacity.com) but don't remember the exact discussion but was provided by our mentors. 
+Thank you for reviwing my project I tried to use some ideas to make the code my own and special also learned through my search journy to find functions and methods
+ that are new like the f string instead of the old .format() """
